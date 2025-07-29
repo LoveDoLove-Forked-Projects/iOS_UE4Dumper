@@ -78,7 +78,7 @@ public:
     inline void Clear()
     {
         NumElements = 0;
-        if (Data) memset(Data, 0, NumElements * MaxElements);
+        if (Data) memset(Data, 0, sizeof(T) * MaxElements);
     }
 };
 
