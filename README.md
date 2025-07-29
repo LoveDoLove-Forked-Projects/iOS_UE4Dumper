@@ -41,7 +41,7 @@ project.
 * Hello Neighbor
 * Hello Neighbor Nicky's Diaries
 * Special Forces Group 2
-- Final Fantasy 14
+* Final Fantasy 14
 
 ## Usage
 
