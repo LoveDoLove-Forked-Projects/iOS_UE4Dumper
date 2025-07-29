@@ -91,6 +91,12 @@ cd iOS_UEDumper/Tweak
 make clean package
 ```
 
+## TODO
+
+* Find ProcessEvent index & offset
+* Sort Generated Packages & Solve Dependencies
+* [Dumper-7](https://github.com/Encryqed/Dumper-7) Auto Find Offsets
+
 ## Credits & Thanks
 
 * [UE4Dumper-4.25](https://github.com/guttir14/UnrealDumper-4.25)
