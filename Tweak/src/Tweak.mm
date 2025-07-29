@@ -39,6 +39,7 @@
 #include "UE/UEGameProfiles/HelloNeighborND.hpp"
 #include "UE/UEGameProfiles/SFG2.hpp"
 #include "UE/UEGameProfiles/ArkUltimate.hpp"
+#include "UE/UEGameProfiles/FFXIV.hpp"
 
 #define DUMP_DELAY_SEC 30
 #define DUMP_FOLDER @"UEDump"
@@ -70,6 +71,7 @@ static std::vector<IGameProfile *> UE_Games = {
     new HelloNeighborNDProfile(),
     new SFG2Profile(),
     new ArkUltimateProfile(),
+    new FFXIVProfile(),
 };
 
 void dump_thread();
