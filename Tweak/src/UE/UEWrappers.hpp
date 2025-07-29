@@ -42,14 +42,15 @@ public:
     inline explicit operator bool() const { return IsValid(); };
 
     inline bool IsValid() const { return Data != nullptr; }
-    inline bool IsValidIndex(int i) const { return i >= 0 && i < NumElements; }
+    inline bool IsValidIndex(int index) const { return index >= 0 && index < NumElements; }
 
-    inline int Slack() const { return NumElements - MaxElements; }
+    inline int Slack() const { return MaxElements - NumElements; }
 
     inline int Num() const { return NumElements; }
     inline int Max() const { return MaxElements; }
 
     inline T *GetData() const { return Data; }
+    inline T *GetDataAt(int index) const { return Data + index; }
 
     inline bool Add(const T &element)
     {
@@ -60,13 +61,13 @@ public:
         return true;
     }
 
-    inline bool RemoveAt(int i)
+    inline bool RemoveAt(int index)
     {
-        if (!IsValidIndex(i)) return false;
+        if (!IsValidIndex(index)) return false;
 
         NumElements--;
 
-        for (int index = i; index < NumElements; index++)
+        for (int i = index; i < NumElements; i++)
         {
             Data[i] = Data[i + 1];
         }
@@ -77,7 +78,7 @@ public:
     inline void Clear()
     {
         NumElements = 0;
-        if (!Data) memset(Data, 0, NumElements * MaxElements);
+        if (Data) memset(Data, 0, NumElements * MaxElements);
     }
 };
 

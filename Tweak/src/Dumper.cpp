@@ -10,6 +10,8 @@ using namespace UEMemory;
 
 #include "UPackageGenerator.hpp"
 
+#define kVECTOR_CONTAINS(vec, val) (std::find(vec.begin(), vec.end(), val) != vec.end())
+
 namespace dumper_jf_ns
 {
     static long long pagezero_size = 0;
@@ -322,7 +324,9 @@ void UEDumper::DumpAIOHeader(BufferFmt &logsBufferFmt, BufferFmt &aioBufferFmt, 
     SimpleProgressBar dumpProgress(int(packages.size()));
     if (progressCallback)
         progressCallback(dumpProgress);
-
+    
+    auto excludedObjects = _profile->GetExcludedObjects();
+    
     for (UE_UPackage package : packages)
     {
         package.Process();
@@ -331,7 +335,60 @@ void UEDumper::DumpAIOHeader(BufferFmt &logsBufferFmt, BufferFmt &aioBufferFmt, 
         if (progressCallback)
             progressCallback(dumpProgress);
 
-        if (!package.AppendToBuffer(&aioBufferFmt))
+        if (package.Classes.size() || package.Structures.size() || package.Enums.size())
+        {
+            aioBufferFmt.append("// Package: {}\n// Enums: {}\n// Structs: {}\n// Classes: {}\n\n",
+                                package.GetObject().GetName(), package.Enums.size(), package.Structures.size(), package.Classes.size());
+
+            if (package.Enums.size())
+            {
+                auto pkgEnums = package.Enums;
+
+                if (excludedObjects.size())
+                {
+                    pkgEnums.erase(
+                        std::remove_if(pkgEnums.begin(), pkgEnums.end(),
+                                       [&excludedObjects](const UE_UPackage::Enum &it)
+                                       { return kVECTOR_CONTAINS(excludedObjects, it.FullName); }),
+                        pkgEnums.end());
+                }
+
+                UE_UPackage::AppendEnumsToBuffer(pkgEnums, &aioBufferFmt);
+            }
+
+            if (package.Structures.size())
+            {
+                auto pkgStructs = package.Structures;
+
+                if (excludedObjects.size())
+                {
+                    pkgStructs.erase(
+                        std::remove_if(pkgStructs.begin(), pkgStructs.end(),
+                                       [&excludedObjects](const UE_UPackage::Struct &it)
+                                       { return kVECTOR_CONTAINS(excludedObjects, it.FullName); }),
+                        pkgStructs.end());
+                }
+
+                UE_UPackage::AppendStructsToBuffer(pkgStructs, &aioBufferFmt);
+            }
+
+            if (package.Classes.size())
+            {
+                auto pkgClasses = package.Classes;
+
+                if (excludedObjects.size())
+                {
+                    pkgClasses.erase(
+                        std::remove_if(pkgClasses.begin(), pkgClasses.end(),
+                                       [&excludedObjects](const UE_UPackage::Struct &it)
+                                       { return kVECTOR_CONTAINS(excludedObjects, it.FullName); }),
+                        pkgClasses.end());
+                }
+
+                UE_UPackage::AppendStructsToBuffer(package.Classes, &aioBufferFmt);
+            }
+        }
+        else
         {
             packages_unsaved += "\t";
             packages_unsaved += (package.GetObject().GetName() + ",\n");

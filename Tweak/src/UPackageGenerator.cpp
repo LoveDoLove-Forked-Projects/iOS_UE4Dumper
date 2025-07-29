@@ -239,7 +239,7 @@ void UE_UPackage::GenerateEnum(const UE_UEnum &object, std::vector<Enum> &arr)
 
     for (int32_t i = 0; i < names.Num(); i++)
     {
-        auto pair = names.GetData() + i * pairSize;
+        auto pair = names.GetDataAt(i * pairSize);
         auto name = UE_FName(pair);
         auto str = name.GetName();
         auto pos = str.find_last_of(':');
@@ -366,33 +366,4 @@ void UE_UPackage::Process()
             GenerateEnum(object.Cast<UE_UEnum>(), Enums);
         }
     }
-}
-
-bool UE_UPackage::AppendToBuffer(BufferFmt *pBufFmt)
-{
-    if (!pBufFmt)
-        return false;
-
-    if (!Classes.size() && !Structures.size() && !Enums.size())
-        return false;
-
-    pBufFmt->append("// Package: {}\n// Enums: {}\n// Structs: {}\n// Classes: {}\n\n",
-                    GetObject().GetName(), Enums.size(), Structures.size(), Classes.size());
-
-    if (Enums.size())
-    {
-        UE_UPackage::AppendEnumsToBuffer(Enums, pBufFmt);
-    }
-
-    if (Structures.size())
-    {
-        UE_UPackage::AppendStructsToBuffer(Structures, pBufFmt);
-    }
-
-    if (Classes.size())
-    {
-        UE_UPackage::AppendStructsToBuffer(Classes, pBufFmt);
-    }
-
-    return true;
 }

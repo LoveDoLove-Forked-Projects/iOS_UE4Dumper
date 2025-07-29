@@ -2,11 +2,11 @@
 
 namespace UEMemory
 {
-    KittyPtrValidator PtrValidator;
+    KittyPtrValidator kPtrValidator;
 
     bool vm_rpm_ptr(const void *address, void *result, size_t len)
     {
-        if (!PtrValidator.isPtrReadable(address))
+        if (!kPtrValidator.isPtrReadable(address))
             return false;
 
         // faster but will crash on any invalid address
@@ -26,7 +26,7 @@ namespace UEMemory
     std::string vm_rpm_str(const void *address, size_t max_len)
     {
 #ifdef RPM_USE_MEMCPY
-        if (PtrValidator.isPtrReadable(address))
+        if (kPtrValidator.isPtrReadable(address))
         {
             const char *chars = (const char *)address;
             std::string str = "";
@@ -67,7 +67,7 @@ namespace UEMemory
     std::wstring vm_rpm_strw(const void *address, size_t max_len)
     {
 #ifdef RPM_USE_MEMCPY
-        if (PtrValidator.isPtrReadable(address))
+        if (kPtrValidator.isPtrReadable(address))
         {
             const wchar_t *chars = (const wchar_t *)address;
             std::wstring str = L"";

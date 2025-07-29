@@ -36,6 +36,12 @@ public:
     virtual bool isUsingOutlineNumberName() const = 0;
 
     virtual UE_Offsets *GetOffsets() const = 0;
+    
+    // Exclude objects from dump, useful when trying to redefine structs/classes in UserTypes.hpp
+    virtual std::vector<std::string> GetExcludedObjects() const;
+    
+    // UserTypes.hpp
+    virtual std::string GetUserTypesHeader() const;
 
 protected:
     virtual uintptr_t GetGUObjectArrayPtr() const = 0;

@@ -11,7 +11,7 @@
 
 class UE_UPackage
 {
-private:
+public:
     struct Member
     {
         std::string Type;
@@ -66,12 +66,10 @@ private:
     static void GeneratePadding(std::vector<Member> &members, uint32_t offset, uint32_t size);
     static void FillPadding(const UE_UStruct &object, std::vector<Member> &members, uint32_t &offset, uint8_t &bitOffset, uint32_t end);
 
-    static void AppendStructsToBuffer(std::vector<Struct> &arr, class BufferFmt *bufFmt);
-    static void AppendEnumsToBuffer(std::vector<Enum> &arr, class BufferFmt *bufFmt);
-
 public:
     UE_UPackage(std::pair<uint8_t *const, std::vector<UE_UObject>> &package) : Package(&package) {};
     inline UE_UObject GetObject() const { return UE_UObject(Package->first); }
     void Process();
-    bool AppendToBuffer(class BufferFmt *bufferFmt);
+    static void AppendStructsToBuffer(std::vector<Struct> &arr, class BufferFmt *bufFmt);
+    static void AppendEnumsToBuffer(std::vector<Enum> &arr, class BufferFmt *bufFmt);
 };

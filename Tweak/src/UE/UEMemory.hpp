@@ -16,7 +16,7 @@
 
 namespace UEMemory
 {
-    extern KittyPtrValidator PtrValidator;
+    extern KittyPtrValidator kPtrValidator;
 
     bool vm_rpm_ptr(const void *address, void *result, size_t len);
 
