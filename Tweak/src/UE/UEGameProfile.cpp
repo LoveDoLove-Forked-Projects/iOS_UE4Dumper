@@ -8,7 +8,7 @@ UEVarsInitStatus IGameProfile::InitUEVars()
 {
     kPtrValidator.setUseCache(true);
     kPtrValidator.refreshRegionCache();
-    if (kPtrValidator.regions().empty())
+    if (kPtrValidator.cachedRegions().empty())
         return UEVarsInitStatus::ERROR_INIT_PTR_VALIDATOR;
 
     _UEVars.BaseAddress = GetExecutableInfo().address;
