@@ -35,6 +35,7 @@ project.
 * Mortal Kombat
 * Night Crows
 * Odin Valhalla Rising
+* PUBG
 * RL Sideswipe
 * Real Boxing 2
 * Rooftops Parkour Pro

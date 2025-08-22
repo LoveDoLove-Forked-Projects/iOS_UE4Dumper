@@ -41,6 +41,7 @@
 #include "UE/UEGameProfiles/ArkUltimate.hpp"
 #include "UE/UEGameProfiles/FFXIV.hpp"
 #include "UE/UEGameProfiles/RLSideswipe.hpp"
+#include "UE/UEGameProfiles/PUBG.hpp"
 
 #define DUMP_DELAY_SEC 30
 #define DUMP_FOLDER @"UEDump"
@@ -74,6 +75,7 @@ static std::vector<IGameProfile *> UE_Games = {
     new ArkUltimateProfile(),
     new FFXIVProfile(),
     new RLSideswipeProfile(),
+    new PUBGProfile(),
 };
 
 void dump_thread();

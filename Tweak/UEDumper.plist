@@ -30,6 +30,11 @@
 			"com.studiowildcard.arkuse",
 			"com.tencent.tmgp.fmgame",
 			"com.psyonixllc.mesa"
+                        "com.tencent.ig",
+                        "com.rekoo.pubgm",
+                        "com.pubg.imobile",
+                        "com.pubg.krmobile",
+                        "com.vng.pubgmobile",
 		);
 	};
 }
