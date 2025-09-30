@@ -45,7 +45,7 @@ public:
 
         for (const auto &it : insn_addresses)
         {
-            uintptr_t objobjects = Arm64::Decode_ADRP_LDR(it + step, 8);
+            uintptr_t objobjects = Arm64::DecodeADRL(it + step, 8);
             if (objobjects)
                 return (objobjects - GetOffsets()->FUObjectArray.ObjObjects);
         }
@@ -72,7 +72,7 @@ public:
             uintptr_t ins = KittyScanner::findIdaPatternFirst(text_seg.start, text_seg.end, ida_pattern);
             if (ins != 0)
             {
-                uintptr_t adrl = Arm64::Decode_ADRP_LDR(ins + step);
+                uintptr_t adrl = Arm64::DecodeADRL(ins + step);
                 if (adrl != 0) return adrl;
             }
         }

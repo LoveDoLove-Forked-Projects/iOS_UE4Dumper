@@ -194,13 +194,13 @@ void UEDumper::DumpOffsetsInfo(BufferFmt &logsBufferFmt, BufferFmt &offsetsBuffe
     uintptr_t namesPtr = _profile->GetUEVars()->GetNamesPtr();
     uintptr_t objectsArrayPtr = _profile->GetUEVars()->GetGUObjectsArrayPtr();
     uintptr_t objObjectsPtr = _profile->GetUEVars()->GetObjObjectsPtr();
+    uintptr_t UEnginePtr = 0, UWorldPtr = 0, ProcessEventPtr = 0;
+    int ProcessEventIndex = 0;
 
     // Find UEngine & UWorld
-    uintptr_t UEnginePtr = 0, UWorldPtr = 0;
+    uint8_t *UEngineObj = nullptr, *UWorldObj = nullptr;
     if (((UE_UObject)UEWrappers::GetObjects()->GetObjectPtr(1)).GetIndex() == 1)
     {
-        auto dataSeg = _profile->GetExecutableInfo().getSegment("__DATA");
-
         UE_UClass UEngineClass = UEWrappers::GetObjects()->FindObject("Class Engine.Engine").Cast<UE_UClass>();
         UE_UClass UWorldClass = UEWrappers::GetObjects()->FindObject("Class Engine.World").Cast<UE_UClass>();
 
@@ -208,22 +208,21 @@ void UEDumper::DumpOffsetsInfo(BufferFmt &logsBufferFmt, BufferFmt &offsetsBuffe
         logsBufferFmt.append("{} -> 0x{:X}\n", UEngineClass.GetFullName(), uintptr_t(UEngineClass.GetAddress()));
         logsBufferFmt.append("{} -> 0x{:X}\n", UWorldClass.GetFullName(), uintptr_t(UWorldClass.GetAddress()));
 
-        UEWrappers::GetObjects()->ForEachObject([&dataSeg, &UEngineClass, &UWorldClass, &UEnginePtr, &UWorldPtr](UE_UObject object)
+        UEWrappers::GetObjects()->ForEachObject([&UEngineClass, &UWorldClass, &UEngineObj, &UWorldObj](UE_UObject object) -> bool
         {
-            bool isUEngine = UEngineClass && object.IsA(UEngineClass);
-            bool isUWorld = UWorldClass && object.IsA(UWorldClass);
-            if (!isUEngine && !isUWorld) return false;
-
             if (!object.HasFlags(EObjectFlags::ClassDefaultObject))
             {
-                if (isUEngine && !UEnginePtr)
-                    UEnginePtr = FindAlignedPointerRefrence(dataSeg.start, dataSeg.size, object.GetAddress());
-
-                if (isUWorld && !UWorldPtr)
-                    UWorldPtr = FindAlignedPointerRefrence(dataSeg.start, dataSeg.size, object.GetAddress());
+                bool isUEngine = UEngineClass && object.IsA(UEngineClass);
+                bool isUWorld = UWorldClass && object.IsA(UWorldClass);
+                if (isUEngine) UEngineObj = object.GetAddress();
+                if (isUWorld) UWorldObj = object.GetAddress();
             }
-            return ((!UEngineClass || UEnginePtr != 0) && (!UWorldClass || UWorldPtr != 0));
+            return ((!UEngineClass || UEngineObj != nullptr) && (!UWorldClass || UWorldObj != nullptr));
         });
+
+        auto dataSeg = _profile->GetExecutableInfo().getSegment("__DATA");
+        UEnginePtr = FindAlignedPointerRefrence(dataSeg.start, dataSeg.size, UEngineObj);
+        UWorldPtr = FindAlignedPointerRefrence(dataSeg.start, dataSeg.size, UWorldObj);
 
         if (!UEnginePtr)
             logsBufferFmt.append("Couldn't find refrence to GEngine.\n");
@@ -235,7 +234,12 @@ void UEDumper::DumpOffsetsInfo(BufferFmt &logsBufferFmt, BufferFmt &offsetsBuffe
         else
             logsBufferFmt.append("GWorld: [<Base> + 0x{:X}] = 0x{:X}\n", UWorldPtr - baseAddr, UWorldPtr);
 
-        logsBufferFmt.append("==========================\n");
+        logsBufferFmt.append("Finding ProcessEvent...\n");
+        uint8_t *obj = UEngineObj ? UEngineObj : UWorldObj;
+        if (!obj || !_profile->findProcessEvent(obj, &ProcessEventPtr, &ProcessEventIndex))
+            logsBufferFmt.append("Couldn't find ProcessEvent.\n");
+        else
+            logsBufferFmt.append("ProcessEvent: Index({}) | [<Base> + 0x{:X}] = 0x{:X}\n", ProcessEventIndex, ProcessEventPtr - baseAddr, ProcessEventPtr);
     }
 
     UE_Pointers uEPointers{};
@@ -244,9 +248,13 @@ void UEDumper::DumpOffsetsInfo(BufferFmt &logsBufferFmt, BufferFmt &offsetsBuffe
     uEPointers.ObjObjects = objObjectsPtr - baseAddr;
     uEPointers.Engine = UEnginePtr ? (UEnginePtr - baseAddr) : 0;
     uEPointers.World = UWorldPtr ? (UWorldPtr - baseAddr) : 0;
+    uEPointers.ProcessEvent = ProcessEventPtr ? (ProcessEventPtr - baseAddr) : 0;
+    uEPointers.ProcessEventIndex = ProcessEventIndex;
 
     offsetsBufferFmt.append("#pragma once\n\n#include <cstdint>\n\n\n");
     offsetsBufferFmt.append("{}\n\n{}", _profile->GetOffsets()->ToString(), uEPointers.ToString());
+
+    logsBufferFmt.append("==========================\n");
 }
 
 void UEDumper::GatherUObjects(BufferFmt &logsBufferFmt, BufferFmt &objsBufferFmt, UEPackagesArray &packages, const ProgressCallback &progressCallback)

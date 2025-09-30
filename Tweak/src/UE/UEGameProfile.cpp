@@ -4,6 +4,11 @@
 
 using namespace UEMemory;
 
+MemoryFileInfo IGameProfile::GetExecutableInfo() const
+{
+    return KittyMemory::getBaseInfo();
+}
+
 UEVarsInitStatus IGameProfile::InitUEVars()
 {
     kPtrValidator.setUseCache(true);
@@ -151,6 +156,134 @@ std::string IGameProfile::GetNameEntryString(uint8_t *entry) const
 std::string IGameProfile::GetNameByID(int32_t id) const
 {
     return GetNameEntryString(GetNameEntry(id));
+}
+
+bool IGameProfile::findProcessEvent(uint8_t *uObject, uintptr_t *pe_address_out, int *pe_index_out) const
+{
+#ifdef __LP64__
+
+    auto pe_sym = KittyScanner::findSymbol(GetExecutableInfo(), "__ZN7UObject12ProcessEventEP9UFunctionPv");
+    auto vft = vm_rpm_ptr<uint8_t *>(uObject);
+
+    std::array<uintptr_t, 100> vft_ptrs;
+    vm_rpm_ptr(vft, vft_ptrs.data(), vft_ptrs.size() * sizeof(uintptr_t));
+
+    // ADRP GUObjectArray
+    // LDR/LDRSW UObject->Index
+    // MOV FUObjectItem->Size
+    // LDRB UFunction->Flags+1
+    // LDR/LDRSH UStruct->PropertiesSize
+    // ADD/LDRSH UFunction->ParamSize
+    // LDR UStruct->ChildProperties/UStruct->Children;
+    // LDRB UFunction->Flags+2
+    // read 0x200 bytes from each virt func
+
+    auto offs = GetOffsets();
+    auto objArrayPtr = GetUEVars()->GetGUObjectsArrayPtr();
+    auto objObjectsPtr = GetUEVars()->GetObjObjectsPtr();
+    int bestScore = 0;
+    int bestScoreIdx = -1;
+
+    for (size_t i = 0; i < vft_ptrs.size(); i++)
+    {
+        int score = 0;
+        std::array<bool, 10> oks = {false, false, false, false, false, false, false, false, false, false};
+
+        if (pe_sym != 0 && vft_ptrs[i] == pe_sym)
+        {
+            bestScore = oks.size();
+            bestScoreIdx = i;
+            break;
+        }
+
+        std::vector<uint32_t> instrs(0x200 / 4, 0);
+        vm_rpm_ptr((void *)vft_ptrs[i], instrs.data(), instrs.size() * 4);
+
+        for (size_t j = 0; j < instrs.size(); j++)
+        {
+            auto insn = KittyArm64::decodeInsn(instrs[j], vft_ptrs[i] + (j * 4));
+            if (!insn.isValid())
+                continue;
+
+            if (!oks[0] && (insn.type == EKittyInsnTypeArm64::ADRP || insn.type == EKittyInsnTypeArm64::ADR))
+            {
+                uintptr_t adrp_adr = insn.target;
+                for (size_t k = 1; k < 8 && k < instrs.size(); k++)
+                {
+                    auto insn2 = KittyArm64::decodeInsn(instrs[j + k]);
+                    if (insn2.isValid() && insn2.immediate != 0 && insn.rd == insn2.rn)
+                    {
+                        adrp_adr += insn2.immediate;
+                        break;
+                    }
+                }
+
+                uintptr_t adrp_adr_deref = vm_rpm_ptr<uintptr_t>((void *)adrp_adr);
+                if (adrp_adr == objArrayPtr || adrp_adr_deref == objArrayPtr || adrp_adr == objObjectsPtr || adrp_adr_deref == objObjectsPtr )
+                    oks[0] = true;
+            }
+
+            // LDR
+            if (insn.immediate == (int64_t)offs->UObject.InternalIndex)
+                oks[1] = true;
+
+            // MOV
+            if (insn.immediate == (int64_t)offs->FUObjectItem.Size)
+                oks[2] = true;
+
+            // LDRB
+            if (insn.immediate == (int64_t)offs->UFunction.EFunctionFlags + 1)
+                oks[3] = true;
+
+            // LDR
+            if (insn.immediate == (int64_t)offs->UStruct.PropertiesSize)
+                oks[4] = true;
+
+            // LDR TWICE FOR MEMSET AND MEMCPY
+            if (insn.immediate == (int64_t)offs->UFunction.ParamSize)
+                oks[5] = true;
+
+            if (oks[5] && insn.immediate == (int64_t)offs->UFunction.ParamSize)
+                oks[6] = true;
+
+            // LDR
+            uintptr_t children = offs->UStruct.ChildProperties ? offs->UStruct.ChildProperties : offs->UStruct.Children;
+            if (insn.immediate == (int64_t)children)
+                oks[7] = true;
+
+            // LDRB
+            if (insn.immediate == (int64_t)offs->UFunction.EFunctionFlags + 2)
+                oks[8] = true;
+
+            // LDR
+            if (oks[7] && insn.immediate == (int64_t)children)
+                oks[9] = true;
+        }
+
+        for (const auto &ok : oks)
+            if (ok) score++;
+
+        if (score > bestScore)
+        {
+            bestScoreIdx = i;
+            bestScore = score;
+        }
+    }
+
+    if (bestScoreIdx >= 0)
+    {
+        if (pe_address_out)
+            *pe_address_out = vft_ptrs[bestScoreIdx];
+
+        if (pe_index_out)
+            *pe_index_out = bestScoreIdx;
+
+        return true;
+    }
+
+#endif
+
+    return false;
 }
 
 std::vector<std::string> IGameProfile::GetExcludedObjects() const

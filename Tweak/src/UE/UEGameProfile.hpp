@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <array>
 
 #include "UEMemory.hpp"
 #include "UEOffsets.hpp"
@@ -24,10 +25,7 @@ public:
 
     virtual std::vector<std::string> GetAppIDs() const = 0;
 
-    virtual MemoryFileInfo GetExecutableInfo() const
-    {
-        return KittyMemory::getBaseInfo();
-    }
+    virtual MemoryFileInfo GetExecutableInfo() const;
 
     virtual bool isUsingCasePreservingName() const = 0;
 
@@ -36,6 +34,8 @@ public:
     virtual bool isUsingOutlineNumberName() const = 0;
 
     virtual UE_Offsets *GetOffsets() const = 0;
+
+    virtual bool findProcessEvent(uint8_t *uObject, uintptr_t *pe_address_out, int *pe_index_out) const;
     
     // Exclude objects from dump, useful when trying to redefine structs/classes in UserTypes.hpp
     virtual std::vector<std::string> GetExcludedObjects() const;

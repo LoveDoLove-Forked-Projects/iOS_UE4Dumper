@@ -202,6 +202,8 @@ std::string UE_Pointers::ToString() const
         kOUT_NS_MEMBER_P((*this), ObjObjects);
         kOUT_NS_MEMBER_P((*this), Engine);
         kOUT_NS_MEMBER_P((*this), World);
+        kOUT_NS_MEMBER_P((*this), ProcessEvent);
+        kOUT_NS_MEMBER_I((*this), ProcessEventIndex);
 
         kOUT_NS_END();
     }

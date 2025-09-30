@@ -15,7 +15,7 @@
 			"com.GreenGo.RooftopsParkour",
 			"com.wb.Injustice.Brawler2017",
 			"com.proxima.dfm",
-                        "com.garena.game.df",
+            "com.garena.game.df",
 			"com.kurogame.wutheringwaves.global",
 			"com.netmarble.bnsmasia",
 			"com.netmarble.lin2ws",
@@ -30,11 +30,11 @@
 			"com.studiowildcard.arkuse",
 			"com.tencent.tmgp.fmgame",
 			"com.psyonixllc.mesa",
-                        "com.tencent.ig",
-                        "com.rekoo.pubgm",
-                        "com.pubg.imobile",
-                        "com.pubg.krmobile",
-                        "com.vng.pubgmobile",
+            "com.tencent.ig",
+            "com.rekoo.pubgm",
+            "com.pubg.imobile",
+            "com.pubg.krmobile",
+            "com.vng.pubgmobile",
 		);
 	};
 }

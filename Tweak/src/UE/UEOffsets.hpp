@@ -128,6 +128,8 @@ struct UE_Pointers
     uintptr_t ObjObjects = 0;
     uintptr_t Engine = 0;
     uintptr_t World = 0;
+    uintptr_t ProcessEvent = 0;
+    uintptr_t ProcessEventIndex = 0;
 
     std::string ToString() const;
 };

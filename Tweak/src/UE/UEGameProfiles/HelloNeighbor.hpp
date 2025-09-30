@@ -61,7 +61,7 @@ public:
             uintptr_t ins = KittyScanner::findIdaPatternFirst(text_seg.start, text_seg.end, ida_pattern);
             if (ins != 0)
             {
-                uintptr_t adrl = Arm64::Decode_ADRP_ADD(ins + step);
+                uintptr_t adrl = Arm64::DecodeADRL(ins + step);
                 if (adrl != 0) return adrl;
             }
         }
@@ -94,7 +94,7 @@ public:
             uintptr_t ins = KittyScanner::findIdaPatternFirst(text_seg.start, text_seg.end, ida_pattern);
             if (ins != 0)
             {
-                uintptr_t adrl = Arm64::Decode_ADRP_ADD(ins + step);
+                uintptr_t adrl = Arm64::DecodeADRL(ins + step);
                 if (adrl != 0) return adrl;
             }
         }

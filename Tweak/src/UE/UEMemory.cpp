@@ -123,49 +123,46 @@ namespace UEMemory
 
     namespace Arm64
     {
-        uintptr_t Decode_ADRP_ADD(uintptr_t adrp_address, uint32_t add_offset)
+        uintptr_t DecodeADRL(uintptr_t adrp_address, uint32_t imm_insn_offset)
         {
             if (adrp_address == 0) return 0;
 
-            const uintptr_t page_off = kINSN_PAGE_OFFSET(adrp_address);
-
-            int64_t adrp_pc_rel = 0;
-            int32_t add_imm12 = 0;
-
             uint32_t adrp_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address));
-            uint32_t add_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address + add_offset));
-            if (adrp_insn == 0 || add_insn == 0)
+            if (adrp_insn == 0)
                 return 0;
 
-            if (!KittyArm64::decode_adr_imm(adrp_insn, &adrp_pc_rel) || adrp_pc_rel == 0)
+            KittyInsnArm64 adrp_decoded = KittyArm64::decodeInsn(adrp_insn, adrp_address);
+            if (adrp_decoded.type != EKittyInsnTypeArm64::ADR && adrp_decoded.type != EKittyInsnTypeArm64::ADRP)
                 return 0;
 
-            add_imm12 = KittyArm64::decode_addsub_imm(add_insn);
+            if (imm_insn_offset == 0)
+            {
+                // scan next 8 instructions
+                // adrp rd == imm rn
+                for (int i = 1; i < 8; i++)
+                {
+                    uint32_t imm_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address + (i * 4)));
+                    KittyInsnArm64 imm_decoded = KittyArm64::decodeInsn(imm_insn);
+                    if (imm_decoded.isValid() && imm_decoded.immediate != 0 && adrp_decoded.rd == imm_decoded.rn)
+                    {
+                        return adrp_decoded.target + imm_decoded.immediate;
+                    }
+                }
+            }
+            else
+            {
+                uint32_t imm_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address + imm_insn_offset));
+                if (imm_insn == 0)
+                    return 0;
 
-            return (page_off + adrp_pc_rel + add_imm12);
-        }
+                KittyInsnArm64 imm_decoded = KittyArm64::decodeInsn(imm_insn);
+                if (imm_decoded.isValid() && imm_decoded.immediate != 0)
+                {
+                    return adrp_decoded.target + imm_decoded.immediate;
+                }
+            }
 
-        uintptr_t Decode_ADRP_LDR(uintptr_t adrp_address, uint32_t ldr_offset)
-        {
-            if (adrp_address == 0) return 0;
-
-            const uintptr_t page_off = kINSN_PAGE_OFFSET(adrp_address);
-
-            int64_t adrp_pc_rel = 0;
-            int32_t ldr_imm12 = 0;
-
-            uint32_t adrp_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address));
-            uint32_t ldr_insn = vm_rpm_ptr<uint32_t>((void *)(adrp_address + ldr_offset));
-            if (adrp_insn == 0 || ldr_insn == 0)
-                return 0;
-
-            if (!KittyArm64::decode_adr_imm(adrp_insn, &adrp_pc_rel) || adrp_pc_rel == 0)
-                return 0;
-
-            if (!KittyArm64::decode_ldrstr_uimm(ldr_insn, &ldr_imm12))
-                return 0;
-
-            return (page_off + adrp_pc_rel + ldr_imm12);
+            return 0;
         }
     }  // namespace Arm64
 

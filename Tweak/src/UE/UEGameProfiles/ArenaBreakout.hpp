@@ -65,7 +65,7 @@ public:
             uintptr_t ins = KittyScanner::findIdaPatternFirst(text_seg.start, text_seg.end, ida_pattern);
             if (ins != 0)
             {
-                uintptr_t adrl = Arm64::Decode_ADRP_ADD(ins + step);
+                uintptr_t adrl = Arm64::DecodeADRL(ins + step);
                 if (adrl != 0) return adrl;
             }
         }
@@ -98,7 +98,7 @@ public:
             uintptr_t ins = KittyScanner::findIdaPatternFirst(text_seg.start, text_seg.end, ida_pattern);
             if (ins != 0)
             {
-                uintptr_t adrl = Arm64::Decode_ADRP_ADD(ins + step);
+                uintptr_t adrl = Arm64::DecodeADRL(ins + step);
                 if (adrl != 0) return adrl;
             }
         }
@@ -115,6 +115,20 @@ public:
         {
             once = true;
             offsets.FNamePool.BlocksOff += sizeof(void *);
+
+            // https://github.com/MJx0/AndUEDumper/issues/42
+            offsets.UStruct.SuperStruct += sizeof(void *);
+            offsets.UStruct.Children += sizeof(void *);
+            offsets.UStruct.ChildProperties += sizeof(void *);
+            offsets.UStruct.PropertiesSize += sizeof(void *);
+
+            offsets.UField.Next += sizeof(void *);
+            offsets.UEnum.Names += sizeof(void *);
+
+            offsets.UFunction.EFunctionFlags += sizeof(void *);
+            offsets.UFunction.NumParams += sizeof(void *);
+            offsets.UFunction.ParamSize += sizeof(void *);
+            offsets.UFunction.Func += sizeof(void *);
         }
 
         return &offsets;

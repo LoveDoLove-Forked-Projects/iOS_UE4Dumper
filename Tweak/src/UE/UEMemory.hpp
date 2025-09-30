@@ -50,13 +50,10 @@ namespace UEMemory
 
     namespace Arm64
     {
-        // adrp followed by add imm
-        uintptr_t Decode_ADRP_ADD(uintptr_t adrp_address, uint32_t add_offset=4);
-        
-        // adrp followed by ldr imm
-        uintptr_t Decode_ADRP_LDR(uintptr_t adrp_address, uint32_t ldr_offset=4);
+        // adrp followed by imm instruction
+        uintptr_t DecodeADRL(uintptr_t adrp_address, uint32_t imm_insn_offset = 0);
     }  // namespace Arm64
-    
+
 }  // namespace UEMemory
 
 namespace IOUtils
@@ -95,44 +92,40 @@ namespace EnumBitmask
     EnumWrapper(Enum e) -> EnumWrapper<Enum>;
 }  // namespace EnumBitmask
 
-#define kDEFINE_ENUM_BITMASK_OPERATORS(ENUM)                          \
-    static_assert(std::is_enum_v<ENUM>, "ENUM must be an enum type"); \
-    [[nodiscard]]                                                     \
-    inline constexpr auto operator&(ENUM lhs, ENUM rhs) noexcept      \
-    {                                                                 \
-        using U = std::underlying_type_t<ENUM>;                       \
-        return EnumBitmask::EnumWrapper{                              \
-            ENUM(static_cast<U>(lhs) & static_cast<U>(rhs))};         \
-    }                                                                 \
-    [[nodiscard]]                                                     \
-    inline constexpr auto operator|(ENUM lhs, ENUM rhs) noexcept      \
-    {                                                                 \
-        using U = std::underlying_type_t<ENUM>;                       \
-        return EnumBitmask::EnumWrapper{                              \
-            ENUM(static_cast<U>(lhs) | static_cast<U>(rhs))};         \
-    }                                                                 \
-    [[nodiscard]]                                                     \
-    inline constexpr auto operator^(ENUM lhs, ENUM rhs) noexcept      \
-    {                                                                 \
-        using U = std::underlying_type_t<ENUM>;                       \
-        return EnumBitmask::EnumWrapper{                              \
-            ENUM(static_cast<U>(lhs) ^ static_cast<U>(rhs))};         \
-    }                                                                 \
-    [[nodiscard]]                                                     \
-    inline constexpr ENUM operator~(ENUM value) noexcept              \
-    {                                                                 \
-        using U = std::underlying_type_t<ENUM>;                       \
-        return ENUM(~static_cast<U>(value));                          \
-    }                                                                 \
-    inline constexpr ENUM &operator&=(ENUM &lhs, ENUM rhs) noexcept   \
-    {                                                                 \
-        return lhs = (lhs & rhs);                                     \
-    }                                                                 \
-    inline constexpr ENUM &operator|=(ENUM &lhs, ENUM rhs) noexcept   \
-    {                                                                 \
-        return lhs = (lhs | rhs);                                     \
-    }                                                                 \
-    inline constexpr ENUM &operator^=(ENUM &lhs, ENUM rhs) noexcept   \
-    {                                                                 \
-        return lhs = (lhs ^ rhs);                                     \
+#define kDEFINE_ENUM_BITMASK_OPERATORS(ENUM)                                   \
+    static_assert(std::is_enum_v<ENUM>, "ENUM must be an enum type");          \
+    [[nodiscard]] inline constexpr auto operator&(ENUM lhs, ENUM rhs) noexcept \
+    {                                                                          \
+        using U = std::underlying_type_t<ENUM>;                                \
+        return EnumBitmask::EnumWrapper{                                       \
+            ENUM(static_cast<U>(lhs) & static_cast<U>(rhs))};                  \
+    }                                                                          \
+    [[nodiscard]] inline constexpr auto operator|(ENUM lhs, ENUM rhs) noexcept \
+    {                                                                          \
+        using U = std::underlying_type_t<ENUM>;                                \
+        return EnumBitmask::EnumWrapper{                                       \
+            ENUM(static_cast<U>(lhs) | static_cast<U>(rhs))};                  \
+    }                                                                          \
+    [[nodiscard]] inline constexpr auto operator^(ENUM lhs, ENUM rhs) noexcept \
+    {                                                                          \
+        using U = std::underlying_type_t<ENUM>;                                \
+        return EnumBitmask::EnumWrapper{                                       \
+            ENUM(static_cast<U>(lhs) ^ static_cast<U>(rhs))};                  \
+    }                                                                          \
+    [[nodiscard]] inline constexpr ENUM operator~(ENUM value) noexcept         \
+    {                                                                          \
+        using U = std::underlying_type_t<ENUM>;                                \
+        return ENUM(~static_cast<U>(value));                                   \
+    }                                                                          \
+    inline constexpr ENUM &operator&=(ENUM &lhs, ENUM rhs) noexcept            \
+    {                                                                          \
+        return lhs = (lhs & rhs);                                              \
+    }                                                                          \
+    inline constexpr ENUM &operator|=(ENUM &lhs, ENUM rhs) noexcept            \
+    {                                                                          \
+        return lhs = (lhs | rhs);                                              \
+    }                                                                          \
+    inline constexpr ENUM &operator^=(ENUM &lhs, ENUM rhs) noexcept            \
+    {                                                                          \
+        return lhs = (lhs ^ rhs);                                              \
     }
