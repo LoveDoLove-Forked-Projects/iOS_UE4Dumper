@@ -13,6 +13,7 @@ project.
 * Generates function names json script to use with IDA & Ghidra
 * Pattern scanning to find the GUObjectArray, GNames and FNamePoolData addresses automatically
 * Find GWorld and GEngine in '__DATA'
+* Find ProcessEvent index and offset
 * Transfer dump files via AirDrop/[LocalSend](https://github.com/localsend/localsend)
 
 ## Currently Supported Games
@@ -96,7 +97,6 @@ make clean package
 
 ## TODO
 
-* Find ProcessEvent index & offset
 * Sort Generated Packages & Solve Dependencies
 * [Dumper-7](https://github.com/Encryqed/Dumper-7) Auto Find Offsets
 
